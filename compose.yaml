@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mysql:8.0-debian
+    container_name: numy-db
+    cap_add:
+      - SYS_NICE
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "2007absalom"
+      MYSQL_DATABASE: "numy"
+    volumes:
+      - ./db-data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p2007absalom" ]
+      interval: 100s
+      timeout: 100s
+      retries: 10
+      start_period: 100s
+    restart: unless-stopped
+    networks:
+      - numy-net
+
+
+  numy:
+    build: .
+    container_name: numy
+    ports:
+      - "3050:3050"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/numy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=2007absalom
+    restart: unless-stopped
+    networks:
+      - numy-net
+networks:
+    numy-net:
+      driver: bridge
