@@ -3,8 +3,7 @@ package com.surrogate.numy.config;
 
 import com.surrogate.numy.utils.DaoAuthenticationProviderWithId;
 import com.surrogate.numy.utils.UserDetailsServiceWithId;
-import com.vaadin.flow.spring.security.VaadinWebSecurity;
-import com.vaadin.flow.spring.security.stateless.VaadinStatelessSecurityConfigurer;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -25,9 +25,7 @@ public class RegisterView extends VerticalLayout {
         LoginForm loginForm = getRegisterForm(authService);
         Button loginButton = new Button("Iniciar Sesion");
         loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        loginButton.addClickListener(e -> {
-           UI.getCurrent().navigate(LoginView.class);
-        });
+        loginButton.addClickListener(e -> UI.getCurrent().navigate(LoginView.class));
 
         add(loginForm, loginButton);
     }

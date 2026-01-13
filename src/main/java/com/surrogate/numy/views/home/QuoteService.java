@@ -1,5 +1,7 @@
 package com.surrogate.numy.views.home;
 
+import com.vaadin.flow.component.html.Span;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +12,20 @@ public class QuoteService {
             "“The world is drowning in weirdness and lies......and here we are, so used to it that we're actually bored!” ", };
 
     @Scheduled(cron="0 0 0 * * *")
+    public void crontab() {
+        loadQuote();
+    }
+
     public void loadQuote() {
         int index = (int) (Math.random() * quotes.length);
         String nuevaFrase = quotes[index];
 
 
         QuoteBroadcaster.broadcast(nuevaFrase);
+    }
+    public void loadFirstQuote(Span quote) {
+        int index = (int) (Math.random() * quotes.length);
+        String nuevaFrase = quotes[index];
+        quote.setText(nuevaFrase);
     }
 }

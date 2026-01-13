@@ -33,9 +33,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     Span quote= new Span();
 
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
-    private HomeView(){
+    private HomeView(QuoteService quoteService) {
         setSizeFull();
-
+        quoteService.loadFirstQuote(quote);
 
         getStyle().set("background-size", "cover");
         getStyle().set("background-position", "center");
@@ -87,6 +87,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         public void beforeEnter(BeforeEnterEvent event) {
             if (!checkAuth()) {
                 log.debug("Login failed");
+
                 UI.getCurrent().getPage().setLocation("/login");
             }
 
@@ -109,9 +110,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         UI ui = attachEvent.getUI();
 
 
-        QuoteBroadcaster.register(nuevaFrase -> {
-            ui.access(() -> quote.setText(nuevaFrase));
-        });
+        QuoteBroadcaster.register(nuevaFrase -> ui.access(() -> quote.setText(nuevaFrase)));
     }
 
     @Override

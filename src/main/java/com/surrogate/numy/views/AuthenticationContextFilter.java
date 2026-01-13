@@ -12,15 +12,13 @@ public class AuthenticationContextFilter implements VaadinServiceInitListener {
 
     @Override
     public void serviceInit(ServiceInitEvent event) {
-        event.getSource().addSessionInitListener(sessionEvent -> {
-            sessionEvent.getSession().addRequestHandler((session, request, response) -> {
-                Authentication auth = session.getAttribute(Authentication.class);
-                if (auth != null) {
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
-                return false;
-            });
-        });
+        event.getSource().addSessionInitListener(sessionEvent -> sessionEvent.getSession().addRequestHandler((session, request, response) -> {
+            Authentication auth = session.getAttribute(Authentication.class);
+            if (auth != null) {
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+            return false;
+        }));
     }
 }
 
