@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&family=Itim&family=Quicksand:wght@500;700&display=swap');
+html, body {
+    font-family: 'Quicksand', sans-serif;
+}
+vaadin-login-form-wrapper {
+    background: rgb(255, 255, 255, 0.8) !important;
+    border-radius: 10px !important;
+    padding: 2rem !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+vaadin-login-form::part(vaadin-login-form-wrapper) {
+    background: rgba(37, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+vaadin-login-form-wrapper {
+    background: rgb(255, 255, 255, 0.8) !important;
+    border-radius: 10px !important;
+    padding: 2rem !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+vaadin-login-form::part(vaadin-login-form-wrapper) {
+    background: rgba(37, 0, 0, 0.8);
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+vaadin-login-form::part(form) {
+    background: transparent;
+    padding: 1rem;
+}
+
+vaadin-login-form::part(form-title) {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+vaadin-login-form vaadin-button[theme~="primary"] {
+    background: #3e3f5f;
+    border-radius: 5px;
+}
+vaadin-vertical-layout{
+    background: url("./images/Muny.png");
+}
+vaadin-button[theme~="primary"] {
+    background: #3e3f5f;
+    border-radius: 5px;
+}
+.div-buttons{
+    margin-left: auto;
+}
+
+.div-buttons-logout{
+    margin-right: auto;
+}
+
+.image-container {
+    background-size: cover;
+    background: url("./images/Muny1.png") center;
+    display: flex;
+
+
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 35%;
+
+    z-index: 1;
+}
+.quote-title {
+    color: white;
+    font-weight: 800;
+    font-size: 1.2rem;
+    font-family: Fredoka, serif;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.quote {
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    font-family: Fredoka, serif;
+
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+.quote-of-the-day-div{
+    position:absolute;
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+    padding: 20px 250px;
+
+    bottom: 5px;
+    left: 45px;
+    background: rgba(0, 0, 0, 0.3);
+
+}

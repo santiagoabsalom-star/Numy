@@ -37,4 +37,7 @@ public class RegisterRequest extends Request {
     public RegisterRequest() {
     }
 
+    public RegisterRequest(String username, String password) {
+        super();
+    }
 }

@@ -3,6 +3,8 @@ package com.surrogate.numy.config;
 
 import com.surrogate.numy.utils.DaoAuthenticationProviderWithId;
 import com.surrogate.numy.utils.UserDetailsServiceWithId;
+import com.vaadin.flow.spring.security.VaadinWebSecurity;
+import com.vaadin.flow.spring.security.stateless.VaadinStatelessSecurityConfigurer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,12 +43,19 @@ public class SecurityConfig {
     @Bean
     @Order(0)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/api/auth/login").permitAll()
-
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/register").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/themes/**").permitAll()
+                        .requestMatchers("/frontend/**").permitAll()
+                        .requestMatchers("login").permitAll()
+                        .requestMatchers("/offline-stub.html").permitAll()
+                        .requestMatchers("/VAADIN/**").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
                         .requestMatchers("/api/auth/admin/register").permitAll()
                         .requestMatchers("/actuator").permitAll()
@@ -85,7 +94,8 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class)
 
-                .addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class)
+        ;
         return http.build();
 
 
@@ -97,6 +107,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
+
                 "http://127.0.0.1:5173",
                 "http://192.168.0.45:5173",
                 "http://localhost:5174",

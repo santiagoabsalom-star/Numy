@@ -9,14 +9,15 @@ import com.surrogate.numy.models.register.RegisterResponse;
 import com.surrogate.numy.repository.bussiness.UsuarioRepository;
 import com.surrogate.numy.services.auth.JWT.JWTService;
 import com.surrogate.numy.utils.UserDetailsWithId;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,8 +68,9 @@ public class AuthService {
 
 
             if (authentication.isAuthenticated()) {
-                UserDetailsWithId userDetails = (UserDetailsWithId) authentication.getPrincipal();
 
+                UserDetailsWithId userDetails = (UserDetailsWithId) authentication.getPrincipal();
+                VaadinSession.getCurrent().setAttribute(Authentication.class, authentication);
                 assert userDetails != null;
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
@@ -93,7 +95,7 @@ public class AuthService {
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
         try {
-            if (!isValidRegisterRequest(registerRequest)) {
+            if (isValidRegisterRequest(registerRequest)) {
                 return new RegisterResponse(error, 401, "La constrasenia tiene que tener 8 digitos o mas");
             }
             if (registerRequest.getRol() == null || registerRequest.getRol().isEmpty()) {
@@ -129,7 +131,8 @@ public class AuthService {
     @Transactional
     public RegisterResponse registerAdmin(RegisterRequest registerRequest) {
         try {
-            if (!isValidRegisterRequest(registerRequest)) {
+            log.info(registerRequest.getUsername());
+            if (isValidRegisterRequest(registerRequest)) {
                 return new RegisterResponse(error, 401, "La constrasenia tiene que tener 8 digitos o mas");
             }
             if (registerRequest.getRol() == null || registerRequest.getRol().isEmpty()) {
@@ -188,12 +191,12 @@ public class AuthService {
 
 
     private boolean isValidRegisterRequest(RegisterRequest request) {
-        if (request == null) return false;
+        if (request == null) return true;
         String username = request.getUsername();
         String password = request.getPassword();
-        if (!StringUtils.hasText(username) || !username.matches(USERNAME_PATTERN)) return false;
-        if (!StringUtils.hasText(password) || password.length() < MIN_PASSWORD_LENGTH) return false;
-        return true;
+        if (!StringUtils.hasText(username)) return false;
+        return StringUtils.hasText(password) && password.length() >= MIN_PASSWORD_LENGTH;
+
     }
 
 
@@ -217,4 +220,5 @@ public class AuthService {
 
     }
 }
+
 

@@ -9,6 +9,8 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 
+
+
 FROM amazoncorretto:21-alpine3.18
 WORKDIR /app
 
