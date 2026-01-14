@@ -54,7 +54,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        if (!chatRepository.existsByNombreChat(nombreChat)&&  !(usuarioRepository.findByNombre(emisor).getRol().equals("ROLE_ADMINISTRADOR"))){
+        if (!chatRepository.existsByNombreChat(nombreChat) &&  !(usuarioRepository.findByNombre(emisor).getRol().equals("ROLE_ADMINISTRADOR"))){
 
             Response response =creaChatIfNotExists(emisor, receptor);
             if (response.getHttpCode() != 200) {
@@ -69,7 +69,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     }
 
-
+    //funciona
     @Override
     public void handleTextMessage(@NotNull WebSocketSession session, @NotNull TextMessage message) throws Exception {
 
@@ -86,15 +86,16 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
 
 
-
+            guardarMensaje(message, nombreChat, session.getAttributes().get("Nombre").toString(), receptor);
             WebSocketSession sesionReceptor= sesiones.get(receptor);
 
+
             if(sesionReceptor!=null && sesionReceptor.isOpen()){sesionReceptor.sendMessage(message);
-                guardarMensaje(message, nombreChat, session.getAttributes().get("Nombre").toString(), receptor);
+
             log.info("Mensaje enviado al receptor: {}", receptor);
-            return;
+
             }
-        guardarMensaje(message, nombreChat, session.getAttributes().get("Nombre").toString(), receptor);
+
 
 
 

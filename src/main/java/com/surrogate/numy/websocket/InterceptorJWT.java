@@ -27,7 +27,7 @@ public class InterceptorJWT implements HandshakeInterceptor {
 
         if(request.getURI().getPath().contains("/post")) {return true;
         }
-        request.getURI();
+
         URI uri = request.getURI();
 
         String[] atributos = uri.getQuery().split("&");

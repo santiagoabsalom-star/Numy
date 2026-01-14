@@ -51,6 +51,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         getStyle().set("background-size", "cover");
         getStyle().set("background-position", "center");
         getStyle().set("background-repeat", "no-repeat");
+        Image conejos= new Image();
+        conejos.setSrc("images/conejos.png");
+        conejos.setClassName("conejos");
         Image fuk= new Image();
 
         fuk.setSrc("images/mariconpro.png");
@@ -86,6 +89,11 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
             if (estaVisible) {
                 initDragLogic();
             }
+//            chatHelper.conectar("SYSTEM_HIGO", (usuario, mensaje) -> {
+//
+//por ahora conecta, despues refactorizo jjejejejej jhjijijiij broooo locurita
+//
+//            });
         });
         profileSubMenu.getItems();
         profileSubMenu.addItem(VaadinIcon.SIGN_OUT.create(), menuItemClickEvent -> {
@@ -122,7 +130,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         chat.addClickListener(event -> notificaciones.setVisible(!notificaciones.isVisible()));
 
 
-        divButtons.add(menuBar, chat, notificaciones);
+        divButtons.add(menuBar, chat, notificaciones,conejos);
         container.add( divButtons, quoteOfTheDay);
         add(container, chatDiv,fuk);
 
@@ -168,10 +176,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
     }
     //TODO USAR ESTAS SHITS PARA COMPLETAR EL CHAT
-    private void conectar(){
 
-    }
     private void desconectar(){
+
     }
     private void enviarMensaje(Mensaje mensaje){
 
@@ -190,13 +197,8 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         chat.setId("chat");
         chat.setClassName("chat");
         Div chatSelector = new Div();
-        List<Chat> chats = new ArrayList<>();
-        chats.add(new Chat());
-        for( Chat chat1: chats) {
-        Button chatButton= new Button(chat1.getNombreChat());
-
-
-        }
+        Button chatButton = new Button();
+        chatSelector.add(chatButton);
 
         Icon closeIcon = new Icon(VaadinIcon.CLOSE);
         closeIcon.setColor("red");
