@@ -1,5 +1,6 @@
 package com.surrogate.numy.views.home;
 
+import com.surrogate.numy.models.bussiness.Chat.Chat;
 import com.surrogate.numy.models.bussiness.Chat.Mensaje;
 import com.surrogate.numy.views.home.chathelper.ChatHelper;
 import com.surrogate.numy.views.login.LoginView;
@@ -11,10 +12,12 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -27,6 +30,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Route("")
@@ -41,11 +47,20 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         setSizeFull();
         quoteService.loadFirstQuote(quote);
 
+
         getStyle().set("background-size", "cover");
         getStyle().set("background-position", "center");
         getStyle().set("background-repeat", "no-repeat");
-        Div logoutDiv = new Div();
+        Image fuk= new Image();
 
+        fuk.setSrc("images/mariconpro.png");
+        fuk.setClassName("image");
+
+//        width:10%;
+//        height: 20%;
+        Div image = new Div();
+
+        image.setClassName("image");
         Div chatDiv = Chat();
         chatDiv.setVisible(false);
         Div divButtons = new Div();
@@ -56,7 +71,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         quoteTitle.setText("Quote of the day");
 
         MenuBar menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
+
         Icon profileIcon = VaadinIcon.USER.create();
+        profileIcon.setClassName("icons");
         profileIcon.setColor("white");
         MenuItem profile = menuBar.addItem(profileIcon);
         SubMenu profileSubMenu = profile.getSubMenu();
@@ -83,27 +101,30 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         quote.addClassName("quote");
 
         quoteOfTheDay.add(quoteTitle, quote);
-        logoutDiv.setClassName("div-buttons-logout");
+
         divButtons.setClassName("div-buttons");
-        Button logout = new Button(new Icon(VaadinIcon.ARROW_LEFT));
-        logout.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        logout.addClickListener(e -> {
-            SecurityContextHolder.clearContext();
-            VaadinSession.getCurrent().close();
 
-            UI.getCurrent().navigate(LoginView.class);
-        });
-        Button chat = new Button(new Icon(VaadinIcon.CHAT));
 
-        chat.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button notificaciones = new Button(new Icon(VaadinIcon.BELL));
-        notificaciones.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button chat = new Button();
+        Icon notification= new Icon(VaadinIcon.BELL);
+        notification.setClassName("icons");
+        notification.setColor("white");
+
+        chat.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        Button notificaciones = new Button();
+        notificaciones.setIcon(notification);
+        Icon chatIcon = new Icon(VaadinIcon.CHAT);
+        chatIcon.setClassName("icons");
+        chatIcon.setColor("white");
+        chat.setIcon(chatIcon);
+        notificaciones.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
         chat.addClickListener(event -> notificaciones.setVisible(!notificaciones.isVisible()));
 
-        logoutDiv.add(logout);
+
         divButtons.add(menuBar, chat, notificaciones);
-        container.add(logoutDiv, divButtons, quoteOfTheDay);
-        add(container, chatDiv);
+        container.add( divButtons, quoteOfTheDay);
+        add(container, chatDiv,fuk);
 
     }
 
@@ -169,7 +190,13 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         chat.setId("chat");
         chat.setClassName("chat");
         Div chatSelector = new Div();
+        List<Chat> chats = new ArrayList<>();
+        chats.add(new Chat());
+        for( Chat chat1: chats) {
+        Button chatButton= new Button(chat1.getNombreChat());
 
+
+        }
 
         Icon closeIcon = new Icon(VaadinIcon.CLOSE);
         closeIcon.setColor("red");
