@@ -1,8 +1,8 @@
 package com.surrogate.numy.views.login;
+
 import com.surrogate.numy.models.login.LoginRequest;
 import com.surrogate.numy.models.login.LoginResponse;
 import com.surrogate.numy.services.auth.AuthService;
-
 import com.surrogate.numy.views.register.RegisterView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;

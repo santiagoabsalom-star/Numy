@@ -4,9 +4,10 @@ import com.surrogate.numy.models.DTO.ChatDTO;
 import com.surrogate.numy.models.bussiness.Chat.Chat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
 
@@ -21,4 +22,6 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     @Query("Select c from Chat c where c.nombreChat like %:nombreLike%")
     List<Chat> findBynombreChatLike(String nombreLike);
 //TODO CAMBIAR EL PRIMER METODO
+@Query("Select c.id_chat from Chat c where c.nombreChat=:nombreChat")
+long findChatId(String nombreChat);
 }

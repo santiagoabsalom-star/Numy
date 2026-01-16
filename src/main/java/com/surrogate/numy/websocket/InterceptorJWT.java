@@ -1,7 +1,6 @@
 package com.surrogate.numy.websocket;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.surrogate.numy.services.auth.JWT.JWTService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,10 @@
 package com.surrogate.numy.views.home;
 
-import com.surrogate.numy.models.bussiness.Chat.Chat;
-import com.surrogate.numy.models.bussiness.Chat.Mensaje;
+import com.surrogate.numy.models.DTO.ConexionDTO;
+import com.surrogate.numy.models.DTO.MensajeDTO;
+import com.surrogate.numy.repository.bussiness.ChatRepository;
+import com.surrogate.numy.repository.bussiness.ConexionRepository;
+import com.surrogate.numy.repository.bussiness.MensajeRepository;
 import com.surrogate.numy.views.home.chathelper.ChatHelper;
 import com.surrogate.numy.views.login.LoginView;
 import com.vaadin.flow.component.AttachEvent;
@@ -18,6 +21,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -31,18 +35,24 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 @Route("")
 public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private final ChatHelper chatHelper;
+    private final MensajeRepository mensajeRepository;
+    private final ChatRepository chatRepository;
+    private final ConexionRepository conexionRepository;
     Span quote = new Span();
     Span quoteTitle = new Span();
+    private String nombreUsuarioActual;
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
 
-    private HomeView(QuoteService quoteService, ChatHelper chatHelper) {
+    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionRepository conexionRepository) {
+        this.conexionRepository=conexionRepository;
+        this.mensajeRepository=mensajeRepository;
+        this.chatRepository=chatRepository;
         this.chatHelper = chatHelper;
         setSizeFull();
         quoteService.loadFirstQuote(quote);
@@ -83,17 +93,14 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         SubMenu profileSubMenu = profile.getSubMenu();
         MenuItem chatItem = profileSubMenu.addItem(VaadinIcon.CHAT.create());
         chatItem.addClickListener(event -> {
+
             boolean estaVisible = !chatDiv.isVisible();
+
             chatDiv.setVisible(estaVisible);
 
             if (estaVisible) {
                 initDragLogic();
             }
-//            chatHelper.conectar("SYSTEM_HIGO", (usuario, mensaje) -> {
-//
-//por ahora conecta, despues refactorizo jjejejejej jhjijijiij broooo locurita
-//
-//            });
         });
         profileSubMenu.getItems();
         profileSubMenu.addItem(VaadinIcon.SIGN_OUT.create(), menuItemClickEvent -> {
@@ -144,6 +151,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
             UI.getCurrent().getPage().setLocation("/login");
         }
+        nombreUsuarioActual= (String)VaadinSession.getCurrent().getAttribute("nombre-usuario");
         //  UserPrincipal userPrincipal = (UserPrincipal)   VaadinSession.getCurrent().getAttribute(Authentication.class).getPrincipal();
     }
 
@@ -166,6 +174,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
 
         QuoteBroadcaster.register(nuevaFrase -> ui.access(() -> quote.setText(nuevaFrase)));
+
     }
 
 
@@ -175,23 +184,84 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         QuoteBroadcaster.unregister(nuevaFrase -> ui.access(() -> quote.setText(nuevaFrase)));
 
     }
-    //TODO USAR ESTAS SHITS PARA COMPLETAR EL CHAT
-
-    private void desconectar(){
-
-    }
-    private void enviarMensaje(Mensaje mensaje){
-
-
-
-    }
 
     private Div Chat() {
         Div chat = new Div();
-        Div textContainer = new Div();
-        Div userTextDiv = new Div();
-        Span userNameSpan = new Span();
-        Span userMessageSpan = new Span();
+
+
+        HorizontalLayout mensajesContainer = new HorizontalLayout();
+
+        mensajesContainer.setClassName("mensajes-container");
+        Span errorSpan = new Span();
+
+        String nombreUsuarioReceptor;
+        ConexionDTO conexionDto= conexionRepository.findConexionByNombreUsuario(nombreUsuarioActual);
+
+        if(conexionDto!=null) {
+            if(conexionDto.nombreUsuario1().equals(nombreUsuarioActual)){
+                nombreUsuarioReceptor = conexionDto.nombreUsuario2();
+            }
+            else {
+                nombreUsuarioReceptor = conexionDto.nombreUsuario1();
+            }
+
+            String nombreChat= conexionDto.nombreUsuario1()+"_"+conexionDto.nombreUsuario2();
+
+            Long idChat= chatRepository.findChatId(nombreChat);
+
+
+            List<MensajeDTO> mensajes= mensajeRepository.findAllByChatId(idChat);
+            for(MensajeDTO mensaje: mensajes) {
+                Div mensajeDiv = new Div();
+                Span nombreUsuario= new Span();
+                if(mensaje.emisor().equals(nombreUsuarioActual)){
+                    nombreUsuario.setText(nombreUsuarioActual);
+
+                    Span mensajeSpan = new Span();
+                    mensajeSpan.setText(mensaje.contenido());
+                    mensajeDiv.add(nombreUsuario,mensajeSpan);
+
+                    mensajeDiv.setClassName("mensaje-usuario-actual");
+
+                    mensajesContainer.add(mensajeDiv);
+                }
+                else{
+                    nombreUsuario.setText(nombreUsuarioReceptor);
+                    Span mensajeSpan = new Span();
+                    mensajeSpan.setText(mensaje.contenido());
+                    mensajeDiv.add(nombreUsuario,mensajeSpan);
+                    mensajeDiv.setClassName("mensaje-usuario-receptor");
+                    mensajesContainer.add(mensajeDiv);
+                }
+            }
+                mensajesContainer.addAttachListener(attachEvent -> {
+                    UI ui = attachEvent.getUI();
+
+                    chatHelper.conectar(nombreChat,(message)->{
+                    ui.access(() -> {     Div mensajeDiv = new Div();
+
+                        mensajeDiv.setClassName("mensaje-usuario-receptor");
+                        Span nombreUsuario= new Span();
+                        nombreUsuario.setText(nombreUsuarioReceptor);
+                        Span mensajeSpan = new Span();
+
+                        mensajeSpan.setText(message);
+                        mensajeDiv.add(nombreUsuario,mensajeSpan);
+                    });
+
+
+                });
+
+                });
+                mensajesContainer.addDetachListener(detachEvent -> chatHelper.cerrarConexion());
+        }
+        else{
+            mensajesContainer.addAttachListener(attachEvent -> {
+                UI ui = attachEvent.getUI();
+               ui.access(() -> errorSpan.setText("Conecta con alguien para poder usar el chat")) ;
+            });
+            mensajesContainer.add(errorSpan);
+        }
 
 
         chat.setId("chat");
@@ -210,7 +280,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         closeButton.addClickListener(buttonClickEvent -> chat.setVisible(false));
         Div handle = new Div();
         handle.setId("handle");
-        handle.setText("agarrame la polla");
+
         handle.setClassName("handle");
 
 
@@ -225,11 +295,18 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         sendButton.setClassName("send-button");
 
         sendButton.addClickListener(event -> {
-            enviarMensaje(new Mensaje());
+        chatHelper.enviarMensaje(chatText.getValue());
+        Div mensajeDiv = new Div();
+        mensajeDiv.setClassName("mensaje-usuario");
+        Span nombreUsuario= new Span();
+        nombreUsuario.setText(nombreUsuarioActual);
+        Span mensajeSpan = new Span();
+        mensajeSpan.setText(chatText.getValue());
+        mensajeDiv.add(nombreUsuario,mensajeSpan);
+        mensajesContainer.add(mensajeDiv);
             chatText.clear();
-
         });
-        chat.add(handle, chatText, sendButton, closeButton);
+        chat.add(handle,mensajesContainer, chatText, sendButton, closeButton);
 
 
         return chat;

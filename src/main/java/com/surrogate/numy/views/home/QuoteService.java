@@ -1,7 +1,6 @@
 package com.surrogate.numy.views.home;
 
 import com.vaadin.flow.component.html.Span;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
