@@ -8,7 +8,6 @@ import com.surrogate.numy.repository.bussiness.ChatRepository;
 import com.surrogate.numy.repository.bussiness.ConexionRepository;
 import com.surrogate.numy.repository.bussiness.MensajeRepository;
 import com.surrogate.numy.repository.bussiness.UsuarioRepository;
-import com.surrogate.numy.utils.UserDetailsWithId;
 import com.surrogate.numy.views.home.chathelper.ChatHelper;
 import com.surrogate.numy.views.login.LoginView;
 import com.vaadin.flow.component.AttachEvent;
