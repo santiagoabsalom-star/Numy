@@ -220,7 +220,9 @@ public class AuthService {
         String systempassword = "HolaMundo12345$";
         systemAdmin.setPasswordHash(passwordEncoder.encode(systempassword));
         systemAdmin.setRol("ROLE_SYSTEM");
+
         String uuid= UUID.randomUUID().toString();
+        log.info("UUID PARA SYSTEM: {}",uuid);
         systemAdmin.setUuid(uuid);
 
         log.info(uuid);

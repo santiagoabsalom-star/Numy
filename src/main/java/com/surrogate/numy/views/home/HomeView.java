@@ -51,8 +51,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private final ConexionRepository conexionRepository;
     private final UsuarioRepository usuarioRepository;
     Span quote = new Span();
+    Usuario usuarioActual;
 
     Span quoteTitle = new Span();
+
     private String nombreUsuarioActual;
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
 
@@ -62,7 +64,6 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         this.chatRepository=chatRepository;
         this.chatHelper = chatHelper;
         this.usuarioRepository=usuarioRepository;
-
         setSizeFull();
         quoteService.loadFirstQuote(quote);
         getStyle().set("overflow", "auto");
@@ -168,6 +169,7 @@ makeConexionDiv= makeConexion();
         }
 
 nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usuario");
+       this.usuarioActual= usuarioRepository.findUsuarioByNombre(nombreUsuarioActual);
         log.info("Usuario actual en home: {}", nombreUsuarioActual);
             }
 
@@ -390,12 +392,20 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
                         "}"
         );
     }
+
+
+
+
+
     private Div makeConexion(){
         Div conexion= new Div();
-
+        conexion.setClassName("make-conexion-div");
         Span aviso = new Span();
+        aviso.setClassName("aviso-conexion");
         aviso.setText("No has realizado ninguna conexion aun, ingresa el UUID de un usuario o comparte el tuyo para conectarse");
         Span uuidUsuarioActual= new Span();
+        uuidUsuarioActual.setClassName("uuid-usuario-actual");
+
         nombreUsuarioActual= VaadinSession.getCurrent().getAttribute("nombre-usuario").toString();
 log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
         if(nombreUsuarioActual!=null) {
@@ -404,6 +414,7 @@ log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
             uuidUsuarioActual.setText(usuario.getUuid());
 
             TextArea ingresoUuid = new TextArea();
+            ingresoUuid.setClassName("ingreso-uuid");
 
             Icon conectarIcon = new Icon(VaadinIcon.CHECK);
             Button conectar = getConectar(conectarIcon, ingresoUuid, aviso);
@@ -415,11 +426,13 @@ log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
 
     private @NotNull Button getConectar(Icon conectarIcon, TextArea ingresoUuid, Span aviso) {
         Button conectar= new Button(conectarIcon);
+        conectar.setClassName("conectar-button");
+
         conectar.addClickListener(event -> {
-        if(!(ingresoUuid.isEmpty())){
+        if(!(ingresoUuid.isEmpty()) ){
 
             Usuario usuario= usuarioRepository.findUsuarioByUuid(ingresoUuid.getValue());
-            if(usuario!=null){
+            if(usuario!=null && !(usuario.getUuid().equals(usuarioActual.getUuid()))){
                 Conexion nuevaConexion= new Conexion();
                 Usuario usuarioActual= usuarioRepository.findUsuarioByNombre(nombreUsuarioActual);
                 nuevaConexion.setId_usuario1(usuarioActual);

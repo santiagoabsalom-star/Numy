@@ -226,13 +226,18 @@ vaadin-menu-bar-button{
     background: rgb(255,255,255,1);
     overflow-y: auto;
 }
+
 .make-conexion-div{
     position: absolute;
     top: 50%;
-    left: 50%;
+    left: 30%;
     background: #3e3f5f;
     border-radius: 5px;
-    width:25%;
-    height:50%;
-
+    width:20%;
+    height:40%;
+    z-index: 1500;
 }
+.aviso-conexion{}
+.uuid-usuario-actual{}
+.ingreso-uuid{}
+.conectar-button{}
