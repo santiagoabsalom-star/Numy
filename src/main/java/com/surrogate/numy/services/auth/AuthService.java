@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.UUID;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -69,9 +71,12 @@ public class AuthService {
             if (authentication.isAuthenticated()) {
 
                 UserDetailsWithId userDetails = (UserDetailsWithId) authentication.getPrincipal();
+
                 VaadinSession.getCurrent().setAttribute(Authentication.class, authentication);
+
                 VaadinSession.getCurrent().setAttribute("nombre-usuario", userDetails.getUsername());
-                assert userDetails != null;
+                log.info(VaadinSession.getCurrent().getPushId());
+                log.info("Usuario {} ha iniciado sesion", VaadinSession.getCurrent().getAttribute("nombre-usuario"));
                 String role = userDetails.getAuthorities().stream()
                         .findFirst()
                         .map(GrantedAuthority::getAuthority)
@@ -159,6 +164,8 @@ public class AuthService {
             newUsuario.setImagenUrl(registerRequest.getImagen_url() != null ? registerRequest.getImagen_url() : null);
             newUsuario.setBiografia(registerRequest.getBiografia()!= null ? registerRequest.getBiografia() : null);
             newUsuario.setEmail(registerRequest.getEmail());
+
+            newUsuario.setUuid(UUID.randomUUID().toString());
             usuarioRepository.save(newUsuario);
             return new RegisterResponse(success, 200, "Registro exitoso");
         } catch (Exception e) {
@@ -213,6 +220,10 @@ public class AuthService {
         String systempassword = "HolaMundo12345$";
         systemAdmin.setPasswordHash(passwordEncoder.encode(systempassword));
         systemAdmin.setRol("ROLE_SYSTEM");
+        String uuid= UUID.randomUUID().toString();
+        systemAdmin.setUuid(uuid);
+
+        log.info(uuid);
         systemAdmin.setEmail("santiagoabsalom@gmail.com");
         usuarioRepository.save(systemAdmin);
         log.info("Usuario SYSTEM creado");

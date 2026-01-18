@@ -2,9 +2,13 @@ package com.surrogate.numy.views.home;
 
 import com.surrogate.numy.models.DTO.ConexionDTO;
 import com.surrogate.numy.models.DTO.MensajeDTO;
+import com.surrogate.numy.models.bussiness.Conexion;
+import com.surrogate.numy.models.bussiness.Usuario;
 import com.surrogate.numy.repository.bussiness.ChatRepository;
 import com.surrogate.numy.repository.bussiness.ConexionRepository;
 import com.surrogate.numy.repository.bussiness.MensajeRepository;
+import com.surrogate.numy.repository.bussiness.UsuarioRepository;
+import com.surrogate.numy.utils.UserDetailsWithId;
 import com.surrogate.numy.views.home.chathelper.ChatHelper;
 import com.surrogate.numy.views.login.LoginView;
 import com.vaadin.flow.component.AttachEvent;
@@ -28,6 +32,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -40,28 +45,34 @@ import java.util.List;
 
 @Route("")
 public class HomeView extends VerticalLayout implements BeforeEnterObserver {
+
     private final ChatHelper chatHelper;
     private final MensajeRepository mensajeRepository;
     private final ChatRepository chatRepository;
     private final ConexionRepository conexionRepository;
+    private final UsuarioRepository usuarioRepository;
     Span quote = new Span();
+
     Span quoteTitle = new Span();
     private String nombreUsuarioActual;
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
 
-    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionRepository conexionRepository) {
+    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionRepository conexionRepository, UsuarioRepository usuarioRepository) {
         this.conexionRepository=conexionRepository;
         this.mensajeRepository=mensajeRepository;
         this.chatRepository=chatRepository;
         this.chatHelper = chatHelper;
+        this.usuarioRepository=usuarioRepository;
+
         setSizeFull();
         quoteService.loadFirstQuote(quote);
-
+        getStyle().set("overflow", "auto");
 
         getStyle().set("background-size", "cover");
         getStyle().set("background-position", "center");
         getStyle().set("background-repeat", "no-repeat");
         Image conejos= new Image();
+
         conejos.setSrc("images/conejos.png");
         conejos.setClassName("conejos");
         Image fuk= new Image();
@@ -82,7 +93,15 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         quoteOfTheDay.addClassName("quote-of-the-day-div");
         container.addClassName("image-container");
         quoteTitle.setText("Quote of the day");
+        Div makeConexionDiv = new Div();
 
+        if(checkAuth()) {
+makeConexionDiv= makeConexion();
+            makeConexionDiv.setClassName("make-conexion-div");
+            makeConexionDiv.setVisible(false);
+
+            makeConexionDiv.setVisible(!conexionRepository.existsConexionByNombreUsuario(nombreUsuarioActual));
+        }
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
 
@@ -97,7 +116,6 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
             boolean estaVisible = !chatDiv.isVisible();
 
             chatDiv.setVisible(estaVisible);
-
             if (estaVisible) {
                 initDragLogic();
             }
@@ -136,11 +154,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         chat.addClickListener(event -> notificaciones.setVisible(!notificaciones.isVisible()));
 
-
         divButtons.add(menuBar, chat, notificaciones,conejos);
         container.add( divButtons, quoteOfTheDay);
-        add(container, chatDiv,fuk);
-
+        add(container,makeConexionDiv, chatDiv,fuk);
     }
 
 
@@ -151,9 +167,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
             UI.getCurrent().getPage().setLocation("/login");
         }
-        nombreUsuarioActual= (String)VaadinSession.getCurrent().getAttribute("nombre-usuario");
-        //  UserPrincipal userPrincipal = (UserPrincipal)   VaadinSession.getCurrent().getAttribute(Authentication.class).getPrincipal();
-    }
+
+nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usuario");
+        log.info("Usuario actual en home: {}", nombreUsuarioActual);
+            }
 
 
     private boolean checkAuth() {
@@ -162,7 +179,11 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         if (auth == null || auth instanceof AnonymousAuthenticationToken) {
             auth = VaadinSession.getCurrent().getAttribute(Authentication.class);
+            log.info("Vaadin session auth restored for user: {}",
+                    VaadinSession.getCurrent().getAttribute("nombre-usuario"));
         }
+        log.info(VaadinSession.getCurrent().getPushId());
+
 
         return auth != null && auth.isAuthenticated() &&
                 auth instanceof UsernamePasswordAuthenticationToken;
@@ -187,7 +208,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
     private Div Chat() {
         Div chat = new Div();
-
+        boolean isChatUssable;
 
         HorizontalLayout mensajesContainer = new HorizontalLayout();
 
@@ -198,6 +219,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         ConexionDTO conexionDto= conexionRepository.findConexionByNombreUsuario(nombreUsuarioActual);
 
         if(conexionDto!=null) {
+            isChatUssable=true;
             if(conexionDto.nombreUsuario1().equals(nombreUsuarioActual)){
                 nombreUsuarioReceptor = conexionDto.nombreUsuario2();
             }
@@ -237,8 +259,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
                 mensajesContainer.addAttachListener(attachEvent -> {
                     UI ui = attachEvent.getUI();
 
-                    chatHelper.conectar(nombreChat,(message)->{
-                    ui.access(() -> {     Div mensajeDiv = new Div();
+                    chatHelper.conectar(nombreChat,(message)-> ui.access(() -> {     Div mensajeDiv = new Div();
 
                         mensajeDiv.setClassName("mensaje-usuario-receptor");
                         Span nombreUsuario= new Span();
@@ -247,19 +268,19 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
                         mensajeSpan.setText(message);
                         mensajeDiv.add(nombreUsuario,mensajeSpan);
-                    });
-
-
-                });
+                        mensajesContainer.add(mensajeDiv);
+                    }));
 
                 });
                 mensajesContainer.addDetachListener(detachEvent -> chatHelper.cerrarConexion());
         }
         else{
+            isChatUssable=false;
             mensajesContainer.addAttachListener(attachEvent -> {
                 UI ui = attachEvent.getUI();
                ui.access(() -> errorSpan.setText("Conecta con alguien para poder usar el chat")) ;
             });
+
             mensajesContainer.add(errorSpan);
         }
 
@@ -293,7 +314,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         Button sendButton = new Button(sendIcon);
 
         sendButton.setClassName("send-button");
-
+        if(!isChatUssable){
+            chatText.setEnabled(false);
+            sendButton.setEnabled(false);
+        }
         sendButton.addClickListener(event -> {
         chatHelper.enviarMensaje(chatText.getValue());
         Div mensajeDiv = new Div();
@@ -367,7 +391,52 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
                         "}"
         );
     }
+    private Div makeConexion(){
+        Div conexion= new Div();
 
+        Span aviso = new Span();
+        aviso.setText("No has realizado ninguna conexion aun, ingresa el UUID de un usuario o comparte el tuyo para conectarse");
+        Span uuidUsuarioActual= new Span();
+        nombreUsuarioActual= VaadinSession.getCurrent().getAttribute("nombre-usuario").toString();
+log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
+        if(nombreUsuarioActual!=null) {
+
+            Usuario usuario = usuarioRepository.findUsuarioByNombre(nombreUsuarioActual);
+            uuidUsuarioActual.setText(usuario.getUuid());
+
+            TextArea ingresoUuid = new TextArea();
+
+            Icon conectarIcon = new Icon(VaadinIcon.CHECK);
+            Button conectar = getConectar(conectarIcon, ingresoUuid, aviso);
+            conexion.add(aviso, uuidUsuarioActual, ingresoUuid, conectar);
+        }
+            return conexion;
+        }
+
+
+    private @NotNull Button getConectar(Icon conectarIcon, TextArea ingresoUuid, Span aviso) {
+        Button conectar= new Button(conectarIcon);
+        conectar.addClickListener(event -> {
+        if(!(ingresoUuid.isEmpty())){
+
+            Usuario usuario= usuarioRepository.findUsuarioByUuid(ingresoUuid.getValue());
+            if(usuario!=null){
+                Conexion nuevaConexion= new Conexion();
+                Usuario usuarioActual= usuarioRepository.findUsuarioByNombre(nombreUsuarioActual);
+                nuevaConexion.setId_usuario1(usuarioActual);
+                nuevaConexion.setId_usuario2(usuario);
+                conexionRepository.save(nuevaConexion);
+                aviso.setText("Conexion realizada con exito con el usuario: "+usuario.getNombre());
+                ingresoUuid.clear();
+                conectar.setVisible(false);
+            }
+            else{
+                aviso.setText("El UUID ingresado no corresponde a ningun usuario");
+            }
+        }
+        });
+        return conectar;
+    }
 }
 
 

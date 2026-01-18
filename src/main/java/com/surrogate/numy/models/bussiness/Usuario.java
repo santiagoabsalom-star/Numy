@@ -3,13 +3,14 @@ package com.surrogate.numy.models.bussiness;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Data
-@Table(name = "usuarios", schema = "zoolip", uniqueConstraints = {
+@Table(name = "usuarios", schema = "numy", uniqueConstraints = {
         @UniqueConstraint(name = "usuario", columnNames = {"nombre"})
 })
 
@@ -33,6 +34,8 @@ public class Usuario {
     private String biografia;
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+    @Column(name= "uuid", nullable = false)
+    private String uuid;
 
 
 }
