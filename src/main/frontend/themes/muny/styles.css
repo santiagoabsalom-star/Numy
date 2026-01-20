@@ -217,14 +217,37 @@ vaadin-menu-bar-button{
 
 }
 .mensajes-container{
+
     display:flex;
+    flex-direction:column;
     width:100%;
     grid-column:1/ span 2;
     grid-row:2;
+
     height:100%;
     border-radius:2px;
     background: rgb(255,255,255,1);
     overflow-y: auto;
+}
+
+.mensaje-usuario-actual{
+
+    display:flex;
+    flex-direction: column;
+    border-radius:5px;
+    align-self:flex-end;
+    margin-left:auto;
+    word-wrap: break-word;
+
+}
+.mensaje-usuario-receptor{
+    align-self: flex-start;
+    display:flex;
+    flex-direction: column;
+    margin-right:auto;
+    word-wrap:break-word;
+
+
 }
 
 

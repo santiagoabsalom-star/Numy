@@ -18,14 +18,14 @@ public class ConexionService {
         ConexionDTO conexionDTO= conexionRepository.findConexion(nombreUsuario);
         if(conexionDTO==null){
             log.info("No se encontró conexión para el usuario: {}", nombreUsuario);
-            throw new RuntimeException("No se encontró conexión para el usuario: " + nombreUsuario);
-        }else{
+            return null;
+        }else {
             log.info("Conexión encontrada para el usuario: {}", nombreUsuario);
             return conexionDTO;
 
-    }
+        }}
 
-    }
+
 public boolean existeConexion(String nombreUsuario){
         return conexionRepository.existsConexionByNombreUsuario(nombreUsuario);
     }

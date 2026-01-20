@@ -48,7 +48,7 @@ import java.util.List;
 @Route("")
 public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
-    private final ChatHelper chatHelper;
+  private final ChatHelper chatHelper;
     private final ConexionService conexionService;
     private final MensajeRepository mensajeRepository;
     private final ChatRepository chatRepository;
@@ -61,10 +61,11 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private String nombreUsuarioActual;
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
     boolean estaVisible=false;
-    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionService conexionService, UsuarioRepository usuarioRepository) {
+
+    private HomeView(QuoteService quoteService, MensajeRepository mensajeRepository,ChatHelper chatHelper, ChatRepository chatRepository, ConexionService conexionService, UsuarioRepository usuarioRepository) {
         this.mensajeRepository=mensajeRepository;
         this.chatRepository=chatRepository;
-        this.chatHelper = chatHelper;
+this.chatHelper=chatHelper;
         this.usuarioRepository=usuarioRepository;
         this.conexionService=conexionService;
         setSizeFull();
@@ -228,6 +229,7 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
         String nombreUsuarioReceptor;
                 nombreUsuarioActual= VaadinSession.getCurrent().getAttribute("nombre-usuario").toString();
                 log.info("Usuario actual en metodo chat: {}", nombreUsuarioActual);
+
                 ConexionDTO conexionDto = conexionService.getConexion(nombreUsuarioActual);
                 if (conexionDto != null) {
                     isChatUssable = true;
@@ -245,6 +247,7 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
 
                     List<MensajeDTO> mensajes = mensajeRepository.findAllByChatId(idChat);
+
                     for (MensajeDTO mensaje : mensajes) {
                         Div mensajeDiv = new Div();
                         Span nombreUsuario = new Span();
@@ -338,7 +341,7 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
              chatHelper.enviarMensaje(mensaje);
 
         Div mensajeDiv = new Div();
-        mensajeDiv.setClassName("mensaje-usuario");
+        mensajeDiv.setClassName("mensaje-usuario-receptor");
         Span nombreUsuario= new Span();
         nombreUsuario.setText(nombreUsuarioActual);
         Span mensajeSpan = new Span();
@@ -459,11 +462,13 @@ log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
                 conexionService.guardar(nuevaConexion);
                 aviso.setText("Conexion realizada con exito con el usuario: "+usuario.getNombre());
                 ingresoUuid.clear();
+
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+                UI.getCurrent().getPage().reload();
                 makeConexionDiv.setVisible(false);
             }
             else{

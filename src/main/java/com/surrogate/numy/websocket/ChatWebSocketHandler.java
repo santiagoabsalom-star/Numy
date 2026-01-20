@@ -16,7 +16,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 
 @RequiredArgsConstructor
@@ -37,14 +39,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@NotNull WebSocketSession session) throws Exception {
         String nombreChat= session.getAttributes().get("NombreChat").toString();
-        String nombreUsuario= session.getAttributes().get("Nombre").toString();
+        String emisor= session.getAttributes().get("Nombre").toString();
+        log.info("Emisor y receptor de esta sesion: {}", emisor);
         String[] usuarios= nombreChat.split("_");
-        String emisor= usuarios[0];
         log.info("Id de sesion {}", session.getId());
-        String receptor= usuarios[1];
+
+        String receptor= Arrays.stream(usuarios).filter(u->!u.equals(emisor)).findFirst().orElse(null);
         if(chatRepository.findBynombreChat(nombreChat)!=null){
             log.info("Conexion WebSocket establecida para el chat existente: {} ", nombreChat);
-            sesiones.put(nombreUsuario, session);
+            sesiones.put(emisor, session);
             return;
         }
 
@@ -66,7 +69,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             log.info("Nueva conexión WebSocket establecida para el chat: {} ", nombreChat);
 
         }
-            sesiones.put(nombreUsuario, session);
+            sesiones.put(emisor, session);
 
     }
 
@@ -78,16 +81,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             String nombreChat= session.getAttributes().get("NombreChat").toString();
 
             String[] usuarios = nombreChat.split("_");
-            String receptor;
-            if(usuarios[0].equals(session.getAttributes().get("Nombre").toString())){
-                receptor= usuarios[1];
-            }else{
-            receptor= usuarios[0];
-            }
-            log.info("El emisor es: {} y el receptor es: {}", session.getAttributes().get("Nombre").toString(), receptor);
+            log.info("Usuario 0: {}, Usuario 1: {}",usuarios[0],usuarios[1]);
+                String receptor;
+                log.info("Nombre de usuario en la sesion emisora {}", session.getAttributes().get("Nombre"));
+                if(usuarios[0].equals(session.getAttributes().get("Nombre"))){
+                    receptor= usuarios[1];
+                }
+                else{
+                    receptor= usuarios[0];
+                }
+                log.info("Receptor {}", receptor);
+            log.info("El emisor es: {} y el receptor es: {}", session.getAttributes().get("Nombre"), receptor);
 
 
-            guardarMensaje(message, nombreChat, session.getAttributes().get("Nombre").toString(), receptor);
+            guardarMensaje(message, nombreChat,(String) session.getAttributes().get("Nombre"), receptor);
 
             WebSocketSession sesionReceptor= sesiones.get(receptor);
             if(sesionReceptor==null){
@@ -95,6 +102,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
 
             if(sesionReceptor!=null &&  sesionReceptor.isOpen()){sesionReceptor.sendMessage(message);
+
+
 
             log.info("Mensaje desde sesion con id: {} enviado al receptor: {} con id de sesion: {}",session.getId(), receptor, sesionReceptor.getId());
 
@@ -132,7 +141,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus status) throws Exception {
-
 
     }
 

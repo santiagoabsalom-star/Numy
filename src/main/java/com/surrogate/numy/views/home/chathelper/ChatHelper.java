@@ -3,19 +3,26 @@ package com.surrogate.numy.views.home.chathelper;
 
 import com.surrogate.numy.utils.UserDetailsWithId;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-
 @Service
+@VaadinSessionScope
+
+//Vaadin Session Scope para que cada sesion tenga un chathelper y que cada sesion no solape a la anterior, perfecto brooo:DDD SOLUCIONADO
+
+        //ahora cada sesion de vaadin va a tener un chatHElper, osea una websocketsession
 public class ChatHelper {
     private final Logger log = LoggerFactory.getLogger(ChatHelper.class);
 
@@ -28,7 +35,6 @@ public class ChatHelper {
 
 
 
-
     }
 
 
@@ -36,6 +42,7 @@ public class ChatHelper {
         this.receptor = onMensajeRecibidoCallback;
         String uri = "ws://localhost:3050/chat/" + "?" + "Nombre_Chat=" + chat + "&Emisor=" + obtenerNombreDeSesion();
         Map<String, String> headers = new HashMap<>();
+
 
         headers.put("User-Agent", "Vaadin-Client");
 

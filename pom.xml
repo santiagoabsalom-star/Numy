@@ -175,7 +175,7 @@
                 <artifactId>vaadin-maven-plugin</artifactId>
                 <version>24.3.11</version>
                 <configuration>
-                    <productionMode>true</productionMode>
+
                     <frontendDirectory>src/main/frontend</frontendDirectory>
                 </configuration>
                 <executions>
