@@ -18,6 +18,7 @@ public class Conexion {
     @Column(name = "id_conexion", nullable = false)
     private long id_conexion;
     @JoinColumn(name="id_usuario1", nullable = false)
+
     @ManyToOne(fetch = FetchType.LAZY)
     private Usuario id_usuario1;
     @JoinColumn(name="id_usuario2", nullable = false)

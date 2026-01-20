@@ -23,5 +23,5 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     List<Chat> findBynombreChatLike(String nombreLike);
 //TODO CAMBIAR EL PRIMER METODO
 @Query("Select c.id_chat from Chat c where c.nombreChat=:nombreChat")
-long findChatId(String nombreChat);
+Long findChatId(String nombreChat);
 }

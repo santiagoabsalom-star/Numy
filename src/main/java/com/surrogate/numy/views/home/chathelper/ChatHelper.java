@@ -54,6 +54,7 @@ public class ChatHelper {
                 public void onMessage(String message) {
                     try {
                     receptor.accept(message);
+
                     } catch (Exception e) {
                         log.error(e.getMessage());
                     }
@@ -104,7 +105,9 @@ public class ChatHelper {
     private String obtenerNombreDeSesion() {
         Authentication auth = VaadinSession.getCurrent().getAttribute(Authentication.class);
         UserDetailsWithId userDetails = (UserDetailsWithId) auth.getPrincipal();
-       return userDetails.getUsername();
+        String username=userDetails.getUsername();
+        log.info("Nombre de usuario obtenido de la sesión en chatHelper: {}", username);
+        return username;
     }
 }
 

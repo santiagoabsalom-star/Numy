@@ -12,9 +12,14 @@ import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Route("/register")
 public class RegisterView extends VerticalLayout {
+    private final Logger logger = LoggerFactory.getLogger(RegisterView.class);
     public RegisterView(AuthService authService){
+
         setSizeFull();
         getStyle().set("background-size", "cover");
         getStyle().set("background-position", "center");
@@ -29,7 +34,7 @@ public class RegisterView extends VerticalLayout {
 
         add(loginForm, loginButton);
     }
-    private static @NotNull LoginForm getRegisterForm(AuthService authService) {
+    private  @NotNull LoginForm getRegisterForm(AuthService authService) {
         LoginForm registerForm = new LoginForm();
         LoginI18n registerI18n = LoginI18n.createDefault();
         registerI18n.getForm().setTitle("Registro");
@@ -46,8 +51,9 @@ public class RegisterView extends VerticalLayout {
 
         registerForm.addLoginListener(event -> {
             String username = event.getUsername();
+            logger.info("Attempting to register user: {}", username);
             String password = event.getPassword();
-            RegisterRequest registerRequest = new RegisterRequest(username, password);
+            RegisterRequest registerRequest = new RegisterRequest(username, password, "USUARIO", null, null, username+"@gmail.com");
             RegisterResponse response = authService.register(registerRequest);
 
 
@@ -57,6 +63,9 @@ public class RegisterView extends VerticalLayout {
                 registerI18n.getErrorMessage().setMessage(response.getMessage());
                 registerForm.setI18n(registerI18n);
 
+            }
+            else {
+                UI.getCurrent().getPage().setLocation("/login");
             }
 
 

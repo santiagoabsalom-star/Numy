@@ -5,13 +5,14 @@ import com.surrogate.numy.models.DTO.MensajeDTO;
 import com.surrogate.numy.models.bussiness.Conexion;
 import com.surrogate.numy.models.bussiness.Usuario;
 import com.surrogate.numy.repository.bussiness.ChatRepository;
-import com.surrogate.numy.repository.bussiness.ConexionRepository;
 import com.surrogate.numy.repository.bussiness.MensajeRepository;
 import com.surrogate.numy.repository.bussiness.UsuarioRepository;
+import com.surrogate.numy.services.bussiness.ConexionService;
 import com.surrogate.numy.views.home.chathelper.ChatHelper;
 import com.surrogate.numy.views.login.LoginView;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -25,8 +26,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
@@ -46,24 +49,24 @@ import java.util.List;
 public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ChatHelper chatHelper;
+    private final ConexionService conexionService;
     private final MensajeRepository mensajeRepository;
     private final ChatRepository chatRepository;
-    private final ConexionRepository conexionRepository;
     private final UsuarioRepository usuarioRepository;
     Span quote = new Span();
     Usuario usuarioActual;
-
+    Div chatDiv= new Div();
     Span quoteTitle = new Span();
-
+    Div makeConexionDiv = new Div();
     private String nombreUsuarioActual;
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
-
-    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionRepository conexionRepository, UsuarioRepository usuarioRepository) {
-        this.conexionRepository=conexionRepository;
+    boolean estaVisible=false;
+    private HomeView(QuoteService quoteService, ChatHelper chatHelper, MensajeRepository mensajeRepository, ChatRepository chatRepository, ConexionService conexionService, UsuarioRepository usuarioRepository) {
         this.mensajeRepository=mensajeRepository;
         this.chatRepository=chatRepository;
         this.chatHelper = chatHelper;
         this.usuarioRepository=usuarioRepository;
+        this.conexionService=conexionService;
         setSizeFull();
         quoteService.loadFirstQuote(quote);
         getStyle().set("overflow", "auto");
@@ -85,7 +88,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         Div image = new Div();
 
         image.setClassName("image");
-        Div chatDiv = Chat();
+        if(checkAuth()) {
+            chatDiv = Chat();
+        }
         chatDiv.setVisible(false);
         Div divButtons = new Div();
         Div container = new Div();
@@ -93,14 +98,14 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         quoteOfTheDay.addClassName("quote-of-the-day-div");
         container.addClassName("image-container");
         quoteTitle.setText("Quote of the day");
-        Div makeConexionDiv = new Div();
+
 
         if(checkAuth()) {
 makeConexionDiv= makeConexion();
             makeConexionDiv.setClassName("make-conexion-div");
             makeConexionDiv.setVisible(false);
 
-            makeConexionDiv.setVisible(!conexionRepository.existsConexionByNombreUsuario(nombreUsuarioActual));
+            makeConexionDiv.setVisible(!conexionService.existeConexion(nombreUsuarioActual));
         }
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
@@ -113,7 +118,7 @@ makeConexionDiv= makeConexion();
         MenuItem chatItem = profileSubMenu.addItem(VaadinIcon.CHAT.create());
         chatItem.addClickListener(event -> {
 
-            boolean estaVisible = !chatDiv.isVisible();
+            estaVisible = !chatDiv.isVisible();
 
             chatDiv.setVisible(estaVisible);
             if (estaVisible) {
@@ -209,82 +214,88 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
     private Div Chat() {
         Div chat = new Div();
-        boolean isChatUssable;
 
+        boolean isChatUssable= false;
         HorizontalLayout mensajesContainer = new HorizontalLayout();
-
+        Scroller mensajesScroller= new Scroller(mensajesContainer);
+        mensajesScroller.setClassName("mensajes-container");
+        chat.add(mensajesScroller);
         mensajesContainer.setClassName("mensajes-container");
         Span errorSpan = new Span();
 
+
+
         String nombreUsuarioReceptor;
-        ConexionDTO conexionDto= conexionRepository.findConexionByNombreUsuario(nombreUsuarioActual);
+                nombreUsuarioActual= VaadinSession.getCurrent().getAttribute("nombre-usuario").toString();
+                log.info("Usuario actual en metodo chat: {}", nombreUsuarioActual);
+                ConexionDTO conexionDto = conexionService.getConexion(nombreUsuarioActual);
+                if (conexionDto != null) {
+                    isChatUssable = true;
+                    log.info("Nombres en conexion actual: {} y {}", conexionDto.getNombreUsuario1(), conexionDto.getNombreUsuario2());
 
-        if(conexionDto!=null) {
-            isChatUssable=true;
-            if(conexionDto.nombreUsuario1().equals(nombreUsuarioActual)){
-                nombreUsuarioReceptor = conexionDto.nombreUsuario2();
-            }
-            else {
-                nombreUsuarioReceptor = conexionDto.nombreUsuario1();
-            }
+                    if (conexionDto.getNombreUsuario1().equals(nombreUsuarioActual)) {
+                        nombreUsuarioReceptor = conexionDto.getNombreUsuario2();
+                    } else {
+                        nombreUsuarioReceptor = conexionDto.getNombreUsuario1();
+                    }
 
-            String nombreChat= conexionDto.nombreUsuario1()+"_"+conexionDto.nombreUsuario2();
+                    String nombreChat = conexionDto.getNombreUsuario1() + "_" + conexionDto.getNombreUsuario2();
 
-            Long idChat= chatRepository.findChatId(nombreChat);
+                    Long idChat = chatRepository.findChatId(nombreChat);
 
 
-            List<MensajeDTO> mensajes= mensajeRepository.findAllByChatId(idChat);
-            for(MensajeDTO mensaje: mensajes) {
-                Div mensajeDiv = new Div();
-                Span nombreUsuario= new Span();
-                if(mensaje.emisor().equals(nombreUsuarioActual)){
-                    nombreUsuario.setText(nombreUsuarioActual);
+                    List<MensajeDTO> mensajes = mensajeRepository.findAllByChatId(idChat);
+                    for (MensajeDTO mensaje : mensajes) {
+                        Div mensajeDiv = new Div();
+                        Span nombreUsuario = new Span();
+                        if (mensaje.emisor().equals(nombreUsuarioActual)) {
+                            nombreUsuario.setText(nombreUsuarioActual);
 
-                    Span mensajeSpan = new Span();
-                    mensajeSpan.setText(mensaje.contenido());
-                    mensajeDiv.add(nombreUsuario,mensajeSpan);
+                            Span mensajeSpan = new Span();
+                            mensajeSpan.setText(mensaje.contenido());
+                            mensajeDiv.add(nombreUsuario, mensajeSpan);
 
-                    mensajeDiv.setClassName("mensaje-usuario-actual");
+                            mensajeDiv.setClassName("mensaje-usuario-actual");
 
-                    mensajesContainer.add(mensajeDiv);
+                            mensajesContainer.add(mensajeDiv);
+                        } else {
+                            nombreUsuario.setText(nombreUsuarioReceptor);
+                            Span mensajeSpan = new Span();
+                            mensajeSpan.setText(mensaje.contenido());
+                            mensajeDiv.add(nombreUsuario, mensajeSpan);
+                            mensajeDiv.setClassName("mensaje-usuario-receptor");
+                            mensajesContainer.add(mensajeDiv);
+                        }
+                    }
+                    mensajesContainer.addAttachListener(attachEvent -> {
+                        UI ui = attachEvent.getUI();
+
+                        chatHelper.conectar(nombreChat, (message) -> ui.access(() -> {
+                            Div mensajeDiv = new Div();
+                            log.info(message);
+                            mensajeDiv.setClassName("mensaje-usuario-receptor");
+                            Span nombreUsuario = new Span();
+                            nombreUsuario.setText(nombreUsuarioReceptor);
+                            Span mensajeSpan = new Span();
+
+                            mensajeSpan.setText(message);
+                            mensajeDiv.add(nombreUsuario, mensajeSpan);
+                            mensajesContainer.add(mensajeDiv);
+                        }));
+
+                    });
+                    mensajesContainer.addDetachListener(detachEvent -> chatHelper.cerrarConexion());
+                } else {
+                    mensajesContainer.addAttachListener(attachEvent -> {
+                        UI ui = attachEvent.getUI();
+                        ui.access(() -> errorSpan.setText("Conecta con alguien para poder usar el chat"));
+                    });
                 }
-                else{
-                    nombreUsuario.setText(nombreUsuarioReceptor);
-                    Span mensajeSpan = new Span();
-                    mensajeSpan.setText(mensaje.contenido());
-                    mensajeDiv.add(nombreUsuario,mensajeSpan);
-                    mensajeDiv.setClassName("mensaje-usuario-receptor");
-                    mensajesContainer.add(mensajeDiv);
-                }
-            }
-                mensajesContainer.addAttachListener(attachEvent -> {
-                    UI ui = attachEvent.getUI();
 
-                    chatHelper.conectar(nombreChat,(message)-> ui.access(() -> {     Div mensajeDiv = new Div();
 
-                        mensajeDiv.setClassName("mensaje-usuario-receptor");
-                        Span nombreUsuario= new Span();
-                        nombreUsuario.setText(nombreUsuarioReceptor);
-                        Span mensajeSpan = new Span();
 
-                        mensajeSpan.setText(message);
-                        mensajeDiv.add(nombreUsuario,mensajeSpan);
-                        mensajesContainer.add(mensajeDiv);
-                    }));
 
-                });
-                mensajesContainer.addDetachListener(detachEvent -> chatHelper.cerrarConexion());
-        }
-        else{
-            isChatUssable=false;
-            mensajesContainer.addAttachListener(attachEvent -> {
-                UI ui = attachEvent.getUI();
-               ui.access(() -> errorSpan.setText("Conecta con alguien para poder usar el chat")) ;
-            });
-
-            mensajesContainer.add(errorSpan);
-        }
-
+        mensajesContainer.add(errorSpan);
 
         chat.setId("chat");
         chat.setClassName("chat");
@@ -309,6 +320,7 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
         Span chatTitle = new Span();
 
         TextArea chatText = new TextArea();
+        chatText.setValueChangeMode(ValueChangeMode.EAGER);
         chatText.setClassName("chat-text-area");
         Icon sendIcon = new Icon(VaadinIcon.CHECK);
         sendIcon.setColor("white");
@@ -319,19 +331,24 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
             chatText.setEnabled(false);
             sendButton.setEnabled(false);
         }
+        sendButton.addClickShortcut(Key.ENTER);
         sendButton.addClickListener(event -> {
-        chatHelper.enviarMensaje(chatText.getValue());
+            if(chatText.isEmpty()) throw new IllegalArgumentException("No se puede enviar un mensaje vacio");
+            String mensaje= chatText.getValue();
+             chatHelper.enviarMensaje(mensaje);
+
         Div mensajeDiv = new Div();
         mensajeDiv.setClassName("mensaje-usuario");
         Span nombreUsuario= new Span();
         nombreUsuario.setText(nombreUsuarioActual);
         Span mensajeSpan = new Span();
-        mensajeSpan.setText(chatText.getValue());
+
+        mensajeSpan.setText(mensaje);
         mensajeDiv.add(nombreUsuario,mensajeSpan);
         mensajesContainer.add(mensajeDiv);
-            chatText.clear();
+        chatText.clear();
         });
-        chat.add(handle,mensajesContainer, chatText, sendButton, closeButton);
+        chat.add(handle,mensajesScroller, chatText, sendButton, closeButton);
 
 
         return chat;
@@ -417,6 +434,7 @@ log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
             ingresoUuid.setClassName("ingreso-uuid");
 
             Icon conectarIcon = new Icon(VaadinIcon.CHECK);
+            conectarIcon.setColor("black");
             Button conectar = getConectar(conectarIcon, ingresoUuid, aviso);
             conexion.add(aviso, uuidUsuarioActual, ingresoUuid, conectar);
         }
@@ -427,20 +445,26 @@ log.info("Usuario en metodo makeconexion: {}", nombreUsuarioActual);
     private @NotNull Button getConectar(Icon conectarIcon, TextArea ingresoUuid, Span aviso) {
         Button conectar= new Button(conectarIcon);
         conectar.setClassName("conectar-button");
-
         conectar.addClickListener(event -> {
         if(!(ingresoUuid.isEmpty()) ){
-
+//optimizacion que se puede hacer para evitar sobrecarga en bd:
+            //Poner el string que se verifica como global, setearlo en primera instancia,luego comparar
+            //si el string global es igual al que pone el usuario, si es igual y no es valido, llevar directamente al error, si es valido simplemente cierra el dialog form:D
             Usuario usuario= usuarioRepository.findUsuarioByUuid(ingresoUuid.getValue());
             if(usuario!=null && !(usuario.getUuid().equals(usuarioActual.getUuid()))){
                 Conexion nuevaConexion= new Conexion();
                 Usuario usuarioActual= usuarioRepository.findUsuarioByNombre(nombreUsuarioActual);
                 nuevaConexion.setId_usuario1(usuarioActual);
                 nuevaConexion.setId_usuario2(usuario);
-                conexionRepository.save(nuevaConexion);
+                conexionService.guardar(nuevaConexion);
                 aviso.setText("Conexion realizada con exito con el usuario: "+usuario.getNombre());
                 ingresoUuid.clear();
-                conectar.setVisible(false);
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                makeConexionDiv.setVisible(false);
             }
             else{
                 aviso.setText("El UUID ingresado no corresponde a ningun usuario");

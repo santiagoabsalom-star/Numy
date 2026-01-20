@@ -125,7 +125,8 @@ public class AuthService {
             newUsuario.setRol(registerRequest.getRol() != null ? registerRequest.getRol() : "USER");
             newUsuario.setImagenUrl(registerRequest.getImagen_url() != null ? registerRequest.getImagen_url() : null);
             newUsuario.setBiografia(registerRequest.getBiografia()!= null ? registerRequest.getBiografia() : null);
-            usuarioRepository.save(newUsuario);
+            newUsuario.setUuid(UUID.randomUUID().toString());
+        usuarioRepository.save(newUsuario);
 
             return new RegisterResponse(success, 200,"Registro exitoso");
         } catch (Exception e) {
@@ -198,12 +199,12 @@ public class AuthService {
 
 
     private boolean isValidRegisterRequest(RegisterRequest request) {
-        if (request == null) return true;
-        String username = request.getUsername();
-        String password = request.getPassword();
-        if (!StringUtils.hasText(username)) return false;
-        return StringUtils.hasText(password) && password.length() >= MIN_PASSWORD_LENGTH;
-
+//        if (request == null) return true;
+//        String username = request.getUsername();
+//        String password = request.getPassword();
+//        if (!StringUtils.hasText(username)) return false;
+//        return StringUtils.hasText(password) && password.length() >= MIN_PASSWORD_LENGTH;
+        return false;
     }
 
 
