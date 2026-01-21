@@ -218,8 +218,11 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
         boolean isChatUssable= false;
         HorizontalLayout mensajesContainer = new HorizontalLayout();
+        mensajesContainer.getElement().executeJs(scrollToBottomJS());
         Scroller mensajesScroller= new Scroller(mensajesContainer);
+
         mensajesScroller.setClassName("mensajes-container");
+        mensajesScroller.setId("mensaje-scroller");
         chat.add(mensajesScroller);
         mensajesContainer.setClassName("mensajes-container");
         Span errorSpan = new Span();
@@ -250,10 +253,13 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
                     for (MensajeDTO mensaje : mensajes) {
                         Div mensajeDiv = new Div();
+                        mensajeDiv.setId("mensaje-div");
+
                         Span nombreUsuario = new Span();
+
                         if (mensaje.emisor().equals(nombreUsuarioActual)) {
                             nombreUsuario.setText(nombreUsuarioActual);
-
+                            nombreUsuario.setClassName("nombre-usuario-actual");
                             Span mensajeSpan = new Span();
                             mensajeSpan.setText(mensaje.contenido());
                             mensajeDiv.add(nombreUsuario, mensajeSpan);
@@ -262,6 +268,7 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
                             mensajesContainer.add(mensajeDiv);
                         } else {
+                            nombreUsuario.setClassName("nombre-usuario-receptor");
                             nombreUsuario.setText(nombreUsuarioReceptor);
                             Span mensajeSpan = new Span();
                             mensajeSpan.setText(mensaje.contenido());
@@ -275,15 +282,10 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
 
                         chatHelper.conectar(nombreChat, (message) -> ui.access(() -> {
                             Div mensajeDiv = new Div();
+                            mensajeDiv.setId("mensaje-div");
                             log.info(message);
                             mensajeDiv.setClassName("mensaje-usuario-receptor");
-                            Span nombreUsuario = new Span();
-                            nombreUsuario.setText(nombreUsuarioReceptor);
-                            Span mensajeSpan = new Span();
 
-                            mensajeSpan.setText(message);
-                            mensajeDiv.add(nombreUsuario, mensajeSpan);
-                            mensajesContainer.add(mensajeDiv);
                         }));
 
                     });
@@ -334,28 +336,36 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
             chatText.setEnabled(false);
             sendButton.setEnabled(false);
         }
+
         sendButton.addClickShortcut(Key.ENTER);
+
         sendButton.addClickListener(event -> {
-            if(chatText.isEmpty()) throw new IllegalArgumentException("No se puede enviar un mensaje vacio");
+            Span nombreUsuario = new Span();
+            nombreUsuario.setText(nombreUsuarioActual);
+            nombreUsuario.setClassName("nombre-usuario");
+
             String mensaje= chatText.getValue();
-             chatHelper.enviarMensaje(mensaje);
+            Div mensajeDiv = new Div();
+            mensajeDiv.setId("mensaje-div");
+            Span mensajeSpan = new Span();
+            mensajeDiv.setClassName("mensaje-usuario-actual");
+         ;  mensajeSpan.setText(mensaje);
 
-        Div mensajeDiv = new Div();
-        mensajeDiv.setClassName("mensaje-usuario-receptor");
-        Span nombreUsuario= new Span();
-        nombreUsuario.setText(nombreUsuarioActual);
-        Span mensajeSpan = new Span();
+            chatHelper.enviarMensaje(mensaje);
 
-        mensajeSpan.setText(mensaje);
-        mensajeDiv.add(nombreUsuario,mensajeSpan);
-        mensajesContainer.add(mensajeDiv);
-        chatText.clear();
+
+
+                mensajeDiv.add(nombreUsuario,mensajeSpan);
+                mensajesContainer.add(mensajeDiv);
+                chatText.clear();
+
         });
         chat.add(handle,mensajesScroller, chatText, sendButton, closeButton);
 
 
         return chat;
     }
+
 
 
 
@@ -413,7 +423,12 @@ nombreUsuarioActual=(String)VaadinSession.getCurrent().getAttribute("nombre-usua
         );
     }
 
-
+    private String scrollToBottomJS(){
+        return "const observer = new MutationObserver(() => {" +
+                "  this.scrollTop = this.scrollHeight;" +
+                "});" +
+                "observer.observe(this, { childList: true, subtree: true });";
+    }
 
 
 

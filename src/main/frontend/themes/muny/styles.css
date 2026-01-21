@@ -249,6 +249,12 @@ vaadin-menu-bar-button{
 
 
 }
+.nombre-usuario-actual{
+    margin-right:auto;
+}
+.nombre-usuario-receptor{
+    margin-left:auto;
+}
 
 
 .make-conexion-div{
